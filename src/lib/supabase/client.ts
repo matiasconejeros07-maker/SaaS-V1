@@ -1,10 +1,10 @@
 "use client";
 import { createBrowserClient } from "@supabase/ssr";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./env";
+import { AUTH_COOKIE, SUPABASE_ANON_KEY, browserSupabaseUrl } from "./env";
 
 let client: ReturnType<typeof createBrowserClient> | undefined;
 
 export function supabaseBrowser() {
-  client ??= createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  client ??= createBrowserClient(browserSupabaseUrl(), SUPABASE_ANON_KEY, { cookieOptions: { name: AUTH_COOKIE } });
   return client;
 }

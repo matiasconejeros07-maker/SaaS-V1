@@ -58,6 +58,23 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
     return () => { supabase.removeChannel(ch); };
   }, [supabase, storeId, upsert]);
 
+  // Respaldo: si el tiempo real no conecta (red con proxy), consulta cada 10 s.
+  useEffect(() => {
+    if (live === "on") return;
+    const t = setInterval(async () => {
+      const { data } = await supabase.from("orders").select(SELECT).eq("store_id", storeId)
+        .in("status", ["new", "preparing", "ready"]).order("created_at", { ascending: true }).limit(200);
+      if (!data) return;
+      setOrders((prev) => {
+        const known = new Set(prev.map((o) => o.id));
+        const fresh = (data as Order[]).filter((o) => !known.has(o.id));
+        if (fresh.length) { toast(`Nuevo pedido #${fresh[0].number} · ${clp(fresh[0].total)}`); if (sound) beep(); }
+        return data as Order[];
+      });
+    }, 10000);
+    return () => clearInterval(t);
+  }, [live, supabase, storeId, toast, sound, beep]);
+
   // Refresca los contadores de tiempo cada 30 s.
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
 
@@ -87,7 +104,7 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
           {sound ? <Bell /> : <BellOff />}{sound ? "Sonido activado" : "Activar sonido"}
         </button>
         <span className="live" data-state={live}>
-          <span className="dot" />{live === "on" ? "En vivo" : live === "off" ? "Sin conexión, reintentando" : "Conectando…"}
+          <span className="dot" />{live === "on" ? "En vivo" : "Actualizando cada 10 s"}
         </span>
       </div>
 

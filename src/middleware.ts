@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
+import { AUTH_COOKIE, SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
 
 /** Refresca la sesión de Supabase y protege /panel. */
 export async function middleware(request: NextRequest) {
@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
   if (!isSupabaseConfigured) return response;
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookieOptions: { name: AUTH_COOKIE },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {
