@@ -22,6 +22,8 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [sound, setSound] = useState(false);
+  const soundRef = useRef(false);
+  soundRef.current = sound;
   const [live, setLive] = useState<"connecting" | "on" | "off">("connecting");
   const [now, setNow] = useState(() => Date.now());
   const audio = useRef<AudioContext | null>(null);
@@ -45,9 +47,9 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
     });
     if (isNew) {
       toast(`Nuevo pedido #${data.number} · ${clp(data.total)}`);
-      if (sound) beep();
+      if (soundRef.current) beep();
     }
-  }, [supabase, toast, sound, beep]);
+  }, [supabase, toast, beep]);
 
   useEffect(() => {
     const ch = supabase
@@ -68,12 +70,12 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
       setOrders((prev) => {
         const known = new Set(prev.map((o) => o.id));
         const fresh = (data as Order[]).filter((o) => !known.has(o.id));
-        if (fresh.length) { toast(`Nuevo pedido #${fresh[0].number} · ${clp(fresh[0].total)}`); if (sound) beep(); }
+        if (fresh.length) { toast(`Nuevo pedido #${fresh[0].number} · ${clp(fresh[0].total)}`); if (soundRef.current) beep(); }
         return data as Order[];
       });
     }, 10000);
     return () => clearInterval(t);
-  }, [live, supabase, storeId, toast, sound, beep]);
+  }, [live, supabase, storeId, toast, beep]);
 
   // Refresca los contadores de tiempo cada 30 s.
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
@@ -85,6 +87,13 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
     if (error) { setOrders(prev); toast("No se pudo actualizar. Revisa tu conexión."); return; }
     toast(`Pedido #${o.number}: ${STATUS_LABEL[to].toLowerCase()}`);
     if (openId === o.id && ["completed", "cancelled"].includes(to)) setOpenId(null);
+  }
+
+  async function markPaid(o: Order) {
+    const { error } = await supabase.rpc("mark_order_paid", { p_order: o.id, p_payment_method: o.payment_method });
+    if (error) { toast(error.message); return; }
+    setOrders((l) => l.map((x) => (x.id === o.id ? { ...x, payment_status: "paid" } : x)));
+    toast(`Pedido #${o.number} pagado`);
   }
 
   const shown = useMemo(() => orders.filter((o) => filter === "all" || o.channel === filter), [orders, filter]);
@@ -126,7 +135,7 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
                     <div className="ticket-top">
                       <b>#{o.number}</b>
                       <span className="pill"><Icon />{o.tables?.label ?? FULFILLMENT_LABEL[o.fulfillment]}</span>
-                      <span className="age">{late ? "Atrasado · " : ""}{agoLabel(o.created_at, now)}</span>
+                      <span className="age" suppressHydrationWarning>{late ? "Atrasado · " : ""}{agoLabel(o.created_at, now)}</span>
                     </div>
                     <div className="who">{o.tables?.label && o.tables.label !== o.customer_name ? `${o.tables.label} · ` : ""}{o.customer_name}</div>
                     <ul>{o.order_items?.map((i) => <li key={i.id}>{qty(i.quantity, i.unit)} {i.name}</li>)}</ul>
@@ -164,7 +173,7 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <span className="pill">{STATUS_LABEL[open.status]}</span>
               <span className="pill">{FULFILLMENT_LABEL[open.fulfillment]}</span>
-              <span className="pill">hace {agoLabel(open.created_at, now)}</span>
+              <span className="pill" suppressHydrationWarning>hace {agoLabel(open.created_at, now)}</span>
             </div>
             <dl className="kv">
               <dt>Cliente</dt><dd>{open.customer_name}</dd>
@@ -174,7 +183,9 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
               {open.address && (<><dt>Dirección</dt><dd>
                 <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(open.address)}`} target="_blank" rel="noopener">{open.address}</a>
               </dd></>)}
-              <dt>Pago</dt><dd>{PAYMENT_LABEL[open.payment_method]} · {open.payment_status === "paid" ? "Pagado" : "Por cobrar"}</dd>
+              <dt>Pago</dt><dd>{PAYMENT_LABEL[open.payment_method]} · {open.payment_status === "paid" ? "Pagado" : (
+                <>Por cobrar <button type="button" className="btn btn-soft btn-sm" style={{ marginLeft: 6 }} onClick={() => markPaid(open)}>Marcar pagado</button></>
+              )}</dd>
               {open.note && (<><dt>Nota</dt><dd>{open.note}</dd></>)}
             </dl>
             <div className="sum">

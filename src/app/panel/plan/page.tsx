@@ -15,7 +15,7 @@ export default async function Page() {
   const { subscription } = await getStoreContext();
   const days = trialDaysLeft(subscription);
   const [label, tone] = STATUS[subscription?.status ?? "trialing"];
-  const ends = subscription?.trial_ends_at ? new Date(subscription.trial_ends_at).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" }) : "";
+  const ends = subscription?.trial_ends_at ? new Date(subscription.trial_ends_at).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Santiago" }) : "";
   return (
     <div className="page" style={{ maxWidth: 820 }}>
       <div className="page-h"><div><h1>Plan y pagos</h1><p>Un solo plan, precio fijo, 0% de comisión por venta.</p></div></div>

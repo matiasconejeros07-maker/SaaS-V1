@@ -7,6 +7,7 @@ import { getStoreContext } from "@/lib/store";
 import { supabaseServer } from "@/lib/supabase/server";
 import { FULFILLMENT_LABEL, STATUS_LABEL, type Order } from "@/lib/types";
 import { CopyLink } from "./copy-link";
+import { SalesChart } from "./sales-chart";
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -25,6 +26,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ b
     supabase.from("opening_hours").select("weekday", { count: "exact", head: true }).eq("store_id", store.id),
   ]);
   const orders = (ordersData ?? []) as Order[];
+  const { data: daily } = await supabase.rpc("daily_sales", { p_store: store.id, p_days: 14 });
+  const days = (daily ?? []) as { day: string; orders: number; total: number }[];
+  const week = days.slice(-7).reduce((t, d) => t + d.total, 0);
+  const prevWeek = days.slice(0, 7).reduce((t, d) => t + d.total, 0);
+  const weekDelta = prevWeek ? Math.round(((week - prevWeek) / prevWeek) * 100) : null;
   const tz = store.timezone;
   const today = dayKey(new Date(), tz);
   const valid = orders.filter((o) => o.status !== "cancelled");
@@ -49,7 +55,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ b
       {bienvenida && <div className="alert ok" role="status"><Check />Tu tienda está creada. Completa estos pasos y comparte tu enlace.</div>}
       <div className="page-h">
         <div>
-          <h1>{greeting()}{userName ? `, ${userName}` : ""}</h1>
+          <h1>{greeting(store.timezone)}{userName ? `, ${userName}` : ""}</h1>
           <p>{active.length
             ? <>Tienes <b style={{ color: "var(--ink)" }}>{active.length} {active.length === 1 ? "pedido activo" : "pedidos activos"}</b>{waiting ? `; ${waiting} esperan confirmación.` : "."}</>
             : "No tienes pedidos pendientes."}</p>
@@ -63,6 +69,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ b
         <div className="card kpi"><span>Ticket promedio</span><b>{clp(avg30)}</b><small>Últimos 30 días</small></div>
         <div className="card kpi"><span>Pedidos en 30 días</span><b>{valid.length}</b><small>{clp(valid.reduce((t, o) => t + o.total, 0))} en ventas</small></div>
       </div>
+
+      <section className="card chart-card">
+        <div className="chart-head">
+          <div><h3>Ventas de los últimos 7 días</h3><b className="num">{clp(week)}</b></div>
+          {weekDelta !== null && (
+            <span className={`trend ${weekDelta >= 0 ? "up" : "down"}`}>{weekDelta >= 0 ? "▲" : "▼"} {Math.abs(weekDelta)}% frente a la semana anterior</span>
+          )}
+        </div>
+        {days.length > 0 && <SalesChart days={days} />}
+      </section>
 
       <div className="grid-2">
         <section className="card">

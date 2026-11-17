@@ -6,7 +6,8 @@ import { Catalog } from "./catalog";
 
 export const metadata: Metadata = { title: "Productos" };
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ nuevo?: string }> }) {
+  const { nuevo } = await searchParams;
   const { store } = await getStoreContext();
   const supabase = await supabaseServer();
   const [{ data: products }, { data: categories }] = await Promise.all([
@@ -15,7 +16,7 @@ export default async function Page() {
   ]);
   return (
     <div className="page">
-      <Catalog storeId={store.id} products={(products ?? []) as Product[]} categories={(categories ?? []) as Category[]} />
+      <Catalog openNew={nuevo === "1"} storeId={store.id} products={(products ?? []) as Product[]} categories={(categories ?? []) as Category[]} />
     </div>
   );
 }

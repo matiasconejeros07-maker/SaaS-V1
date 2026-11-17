@@ -51,7 +51,7 @@ export function Kitchen({ storeId, storeName, initial }: { storeId: string; stor
       <article key={o.id} className={`kds-ticket ${flash === o.id ? "flash" : ""}`} data-tone={tone}>
         <header>
           <span className="kds-where"><Icon />{where}</span>
-          <span className="kds-time num">{mins} min</span>
+          <span className="kds-time num" suppressHydrationWarning>{mins} min</span>
         </header>
         <div className="kds-sub">#{o.number}{o.customer_name && o.customer_name !== o.tables?.label ? ` · ${o.customer_name}` : ""}</div>
         <ul>
@@ -84,7 +84,7 @@ export function Kitchen({ storeId, storeName, initial }: { storeId: string; stor
           onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})}>
           <Maximize />
         </button>
-        <span className="kds-clock num">{clock}</span>
+        <span className="kds-clock num" suppressHydrationWarning>{clock}</span>
       </header>
       {error && <div className="kds-error" role="alert">{error}</div>}
       <main className="kds-cols">

@@ -11,6 +11,8 @@ import { BUSINESS_TYPES } from "@/lib/types";
 type Hour = { weekday: number; open: boolean; opens: string; closes: string };
 const STEPS = ["Tu negocio", "Pedidos", "Horario", "Primer producto"] as const;
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
+const RESERVED = new Set(["panel", "ingresar", "registro", "salir", "api", "admin", "auth", "app", "www", "soporte", "ayuda", "precios",
+  "legal", "tiendas", "static", "cocina", "pedido", "pedidos", "caja", "mesas", "tienda", "cuenta", "login", "signup"]);
 
 export function Wizard({ ownerName }: { ownerName: string }) {
   const router = useRouter();
@@ -43,6 +45,7 @@ export function Wizard({ ownerName }: { ownerName: string }) {
     if (s === 0) {
       if (name.trim().length < 2) e.name = "Escribe el nombre de tu negocio (mínimo 2 letras).";
       if (!/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(slug)) e.slug = "Usa solo letras minúsculas, números y guiones.";
+      else if (RESERVED.has(slug)) e.slug = "Ese enlace está reservado. Agrega el nombre de tu negocio, por ejemplo cocina-de-ana.";
       if (!type) e.type = "Elige el tipo de negocio.";
     }
     if (s === 1) {
@@ -76,7 +79,7 @@ export function Wizard({ ownerName }: { ownerName: string }) {
     if (err || !store) {
       setBusy(false);
       const m = err?.message ?? "";
-      if (/enlace ya está en uso/i.test(m)) { setStep(0); setErrors({ slug: m }); return; }
+      if (/enlace/i.test(m)) { setStep(0); setErrors({ slug: m }); return; }
       setError(m && !/^[A-Z_]+$/.test(m) ? m : "No pudimos crear tu tienda. Inténtalo de nuevo.");
       return;
     }

@@ -1,7 +1,7 @@
 "use client";
 import { ImagePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Field, useToast } from "@/components/ui";
 import { BRAND } from "@/config/brand";
 import { DAYS, formatCLPhone, normalizeCLPhone } from "@/lib/format";
@@ -31,6 +31,12 @@ export function Settings({ store, hours: initialHours }: { store: Store; hours: 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!logo) { setLogoPreview(null); return; }
+    const u = URL.createObjectURL(logo); setLogoPreview(u);
+    return () => URL.revokeObjectURL(u);
+  }, [logo]);
   const set = (p: Partial<typeof s>) => setS((x) => ({ ...x, ...p }));
   const setHour = (d: number, p: Partial<Hour>) => setHours((hs) => hs.map((h) => (h.weekday === d ? { ...h, ...p } : h)));
 
@@ -65,11 +71,10 @@ export function Settings({ store, hours: initialHours }: { store: Store; hours: 
     }).eq("id", store.id);
     if (error) { setBusy(false); toast("No se pudieron guardar los cambios."); return; }
 
-    const open = hours.filter((h) => h.open).map(({ weekday, opens, closes }) => ({ store_id: store.id, weekday, opens, closes }));
-    const del = await supabase.from("opening_hours").delete().eq("store_id", store.id);
-    const ins = open.length ? await supabase.from("opening_hours").insert(open) : { error: null };
+    const open = hours.filter((h) => h.open).map(({ weekday, opens, closes }) => ({ weekday, opens, closes }));
+    const hrs = await supabase.rpc("set_opening_hours", { p_store: store.id, p_hours: open });
     setBusy(false);
-    if (del.error || ins.error) { toast("Se guardó la tienda, pero no el horario. Intenta de nuevo."); return; }
+    if (hrs.error) { toast("Se guardó la tienda, pero no el horario. Intenta de nuevo."); return; }
     set({ logo_url: logoUrl }); setLogo(null);
     toast("Cambios guardados");
     router.refresh();
@@ -85,7 +90,7 @@ export function Settings({ store, hours: initialHours }: { store: Store; hours: 
           <h2>Negocio</h2>
           <div className="img-pick">
             <div className="avatar" style={{ width: 72, height: 72, borderRadius: 18, fontSize: 28 }}>
-              {logo ? <img src={URL.createObjectURL(logo)} alt="" /> : s.logo_url ? <img src={s.logo_url} alt="" /> : <ImagePlus />}
+              {logoPreview ? <img src={logoPreview} alt="" /> : s.logo_url ? <img src={s.logo_url} alt="" /> : <ImagePlus />}
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               <label className="btn btn-soft btn-sm" style={{ justifySelf: "start" }}>Subir logo

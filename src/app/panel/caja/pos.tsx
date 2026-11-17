@@ -1,7 +1,8 @@
 "use client";
-import { ChefHat, Lock, Minus, Package, Plus, ScanBarcode, Search, Trash2, Unlock, X } from "lucide-react";
+import { ChefHat, Lock, Minus, Plus, ScanBarcode, Search, Trash2, Unlock, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
+import { Thumb } from "@/components/thumb";
 import { Drawer, Field, useToast } from "@/components/ui";
 import { clp, qty } from "@/lib/format";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -87,7 +88,7 @@ export function Pos({ storeId, products, categories, tables, session, summary, k
     setSheet(null);
     toast(paid
       ? (r.change > 0 ? `Venta #${r.order_number} · vuelto ${clp(r.change)}` : `Venta #${r.order_number} cobrada`)
-      : `Comanda #${r.order_number} enviada a cocina`);
+      : kitchenOn ? `Comanda #${r.order_number} enviada a cocina` : `Pedido #${r.order_number} anotado en ${table?.label ?? "la mesa"}`);
     reset();
     if (!paid && tableId) router.push("/panel/mesas"); else router.refresh();
   }
@@ -149,7 +150,7 @@ export function Pos({ storeId, products, categories, tables, session, summary, k
           <div className="pos-products">
             {list.map((p) => (
               <button key={p.id} type="button" className="pos-prod" disabled={!p.is_available} onClick={() => add(p)}>
-                <span className="thumb">{p.image_url ? <img src={p.image_url} alt="" /> : <Package />}</span>
+                <Thumb name={p.name} src={p.image_url} />
                 <span className="nm">{p.name}</span>
                 <span className="pr num">{clp(p.price)}{p.unit === "kg" ? "/kg" : ""}</span>
                 {!p.is_available && <span className="pill">Agotado</span>}
@@ -193,9 +194,9 @@ export function Pos({ storeId, products, categories, tables, session, summary, k
           )}
           <div className="pos-total"><span>Total</span><b className="num">{clp(total)}</b></div>
           <div className="pos-actions">
-            {kitchenOn && (
+            {(kitchenOn || table) && (
               <button type="button" className="btn btn-ghost btn-lg" disabled={!lines.length || busy} onClick={() => sell(false)}>
-                <ChefHat />{table ? `Comanda a ${table.label}` : "Enviar a cocina"}
+                <ChefHat />{table ? `${kitchenOn ? "Comanda a" : "Anotar en"} ${table.label}` : "Enviar a cocina"}
               </button>
             )}
             <button type="button" className="btn btn-primary btn-lg" disabled={!lines.length || !session}

@@ -1,10 +1,12 @@
-import { ExternalLink, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
+import { Thumb } from "@/components/thumb";
 import { ToastProvider } from "@/components/ui";
 import { BRAND, PLAN } from "@/config/brand";
 import { clp } from "@/lib/format";
 import { getStoreContext, trialDaysLeft } from "@/lib/store";
 import { supabaseServer } from "@/lib/supabase/server";
+import { Topbar } from "./command";
 import { MobileNav, PanelNav } from "./nav";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +21,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <div className="admin">
         <aside className="side">
           <div className="store-switch">
-            <div className="avatar">{store.logo_url ? <img src={store.logo_url} alt="" /> : store.name[0]?.toUpperCase()}</div>
+            <Thumb name={store.name} src={store.logo_url} className="avatar" />
             <div style={{ minWidth: 0 }}>
               <b>{store.name}</b>
               <span>{BRAND.domain}/{store.slug}</span>
@@ -41,10 +43,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </aside>
         <div className="main">
           <MobileNav />
-          <div className="topbar">
-            <span className="sp" />
-            <a className="btn btn-ghost btn-sm" href={`/${store.slug}`} target="_blank" rel="noopener"><ExternalLink />Ver mi tienda</a>
-          </div>
+          <Topbar storeSlug={store.slug} storeName={store.name} />
           {children}
         </div>
       </div>

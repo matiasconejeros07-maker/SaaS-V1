@@ -44,8 +44,8 @@ export function agoLabel(iso: string, now = Date.now()) {
   return `${Math.floor(h / 24)} d`;
 }
 
-export function greeting(date = new Date()) {
-  const h = date.getHours();
+export function greeting(tz = "America/Santiago", date = new Date()) {
+  const h = Number(new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", hourCycle: "h23" }).format(date));
   return h < 12 ? "Buenos días" : h < 20 ? "Buenas tardes" : "Buenas noches";
 }
 

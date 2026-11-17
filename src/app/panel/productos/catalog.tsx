@@ -1,7 +1,8 @@
 "use client";
-import { ImagePlus, Package, Plus, Search, Trash2 } from "lucide-react";
+import { ImagePlus, Plus, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Thumb } from "@/components/thumb";
 import { Drawer, Field, useToast } from "@/components/ui";
 import { clp } from "@/lib/format";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -16,7 +17,7 @@ const empty = (cat = ""): Draft => ({
   is_available: true, dine_in_only: false, track_stock: false, stock: "0", image_url: null, barcode: "",
 });
 
-export function Catalog({ storeId, products: initialProducts, categories: initialCats }: { storeId: string; products: Product[]; categories: Category[] }) {
+export function Catalog({ storeId, products: initialProducts, categories: initialCats, openNew = false }: { storeId: string; products: Product[]; categories: Category[]; openNew?: boolean }) {
   const supabase = supabaseBrowser();
   const router = useRouter();
   const toast = useToast();
@@ -109,8 +110,19 @@ export function Catalog({ storeId, products: initialProducts, categories: initia
     toast("Producto eliminado");
   }
 
+  useEffect(() => {
+    if (openNew) { edit(); window.history.replaceState(null, "", "/panel/productos"); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openNew]);
+
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d));
-  const preview = file ? URL.createObjectURL(file) : draft?.image_url;
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) { setFilePreview(null); return; }
+    const u = URL.createObjectURL(file); setFilePreview(u);
+    return () => URL.revokeObjectURL(u);
+  }, [file]);
+  const preview = filePreview ?? draft?.image_url;
 
   return (
     <>
@@ -138,7 +150,7 @@ export function Catalog({ storeId, products: initialProducts, categories: initia
                   <tr key={p.id} className="row-link" onClick={() => edit(p)}>
                     <td>
                       <div className="p-name">
-                        <div className="thumb">{p.image_url ? <img src={p.image_url} alt="" /> : <Package />}</div>
+                        <Thumb name={p.name} src={p.image_url} />
                         <div><b>{p.name}</b><span>{p.description || "Sin descripción"}</span></div>
                       </div>
                     </td>
