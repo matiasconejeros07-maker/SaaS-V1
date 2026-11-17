@@ -11,6 +11,8 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  // Las imágenes vienen de Supabase Storage subidas por cada tienda.
+  { rules: { "@next/next/no-img-element": "off" } },
   {
     ignores: [
       "node_modules/**",
