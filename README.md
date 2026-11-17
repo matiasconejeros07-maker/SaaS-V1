@@ -23,6 +23,7 @@ Pensada para usarla en tu propio negocio y ofrecerla como servicio a otras tiend
 | Pantalla de cocina en vivo con tiempos | ✅ |
 | Caja POS: código de barras, venta por kilo, vuelto, comandas | ✅ |
 | Apertura y cierre de caja con cuadratura | ✅ |
+| Asistente de ayuda con IA dentro del panel (Claude) | ✅ |
 | Inventario con movimientos, usuarios del equipo con PIN | 🔜 Fase 3 |
 
 Ver [docs/ROADMAP.md](docs/ROADMAP.md) para el plan completo y [docs/LETTERA-CORRECCIONES.md](docs/LETTERA-CORRECCIONES.md) para los problemas de Lettera que este proyecto resuelve.
@@ -37,6 +38,16 @@ Seguridad principal (en `supabase/migrations`):
 - Cada tabla tiene **Row Level Security**: una tienda nunca ve datos de otra.
 - Los pedidos solo se crean con la función `place_order`, que **recalcula precios, despacho y stock en el servidor**. El navegador no puede fijar precios.
 - Montos y datos del cliente de un pedido no se pueden editar; los estados solo avanzan en orden.
+
+## Asistente de ayuda (IA)
+
+Botón **Ayuda** en la barra superior del panel (o "Preguntar al asistente" en ⌘K). Responde dudas sobre el programa usando:
+- la guía del producto en `src/lib/assistant/knowledge.ts` (**actualízala cuando cambie una pantalla**), y
+- el contexto de la tienda: módulos activos, página actual, caja abierta, plan. No envía datos de clientes ni pedidos.
+
+Configuración: `ANTHROPIC_API_KEY` en el servidor (nunca en variables `NEXT_PUBLIC_`). Usa Claude Opus 5.5 con esfuerzo bajo, respuestas en streaming,
+caché de la guía y reintento automático con otro modelo si un filtro de seguridad rechaza la pregunta. Límite de 60 preguntas por usuario al día (`ASSISTANT_DAILY_LIMIT`).
+Sin clave, el botón funciona pero responde que el asistente no está configurado.
 
 ## Cómo correrlo en tu computador
 

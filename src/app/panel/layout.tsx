@@ -6,6 +6,7 @@ import { BRAND, PLAN } from "@/config/brand";
 import { clp } from "@/lib/format";
 import { getStoreContext, trialDaysLeft } from "@/lib/store";
 import { supabaseServer } from "@/lib/supabase/server";
+import { Assistant } from "./assistant";
 import { Topbar } from "./command";
 import { MobileNav, PanelNav } from "./nav";
 
@@ -47,6 +48,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {children}
         </div>
       </div>
+      <Assistant />
     </ToastProvider>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import {
-  BarChart3, Calculator, ChefHat, CreditCard, ExternalLink, Home, Inbox, Package, Plus, Printer, QrCode, Search, Settings,
+  BarChart3, Calculator, ChefHat, CreditCard, ExternalLink, Home, Inbox, Package, Plus, Printer, QrCode, Search, Settings, Sparkles,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -35,6 +35,7 @@ export function Topbar({ storeSlug, storeName }: { storeSlug: string; storeName:
     { id: "new-product", label: "Nuevo producto", group: "Acciones", icon: Plus, href: "/panel/productos?nuevo=1", keywords: "agregar crear" },
     { id: "store", label: `Ver ${storeName}`, group: "Acciones", icon: ExternalLink, href: `/${storeSlug}`, external: true, keywords: "tienda publica" },
     { id: "print", label: "Imprimir QR de mesas", group: "Acciones", icon: Printer, href: "/panel/mesas/imprimir", external: true },
+    { id: "help", label: "Preguntar al asistente", group: "Acciones", icon: Sparkles, href: "#asistente", keywords: "ayuda chat duda soporte ia" },
   ], [storeSlug, storeName]);
 
   const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -53,6 +54,7 @@ export function Topbar({ storeSlug, storeName }: { storeSlug: string; storeName:
 
   function run(c: Cmd) {
     setOpen(false);
+    if (c.href === "#asistente") { window.dispatchEvent(new Event("asistente:toggle")); return; }
     if (c.external) window.open(c.href, "_blank", "noopener");
     else router.push(c.href);
   }
@@ -65,7 +67,8 @@ export function Topbar({ storeSlug, storeName }: { storeSlug: string; storeName:
         <button type="button" className="cmd-trigger" onClick={() => setOpen(true)} aria-label="Buscar o ir a">
           <Search /><span>Buscar o ir a…</span><kbd>⌘K</kbd>
         </button>
-        <a className="btn btn-ghost btn-sm" href={`/${storeSlug}`} target="_blank" rel="noopener"><ExternalLink />Ver mi tienda</a>
+        <button type="button" className="btn btn-ghost btn-sm ai-trigger" onClick={() => window.dispatchEvent(new Event("asistente:toggle"))}><Sparkles />Ayuda</button>
+        <a className="btn btn-ghost btn-sm" href={`/${storeSlug}`} target="_blank" rel="noopener"><ExternalLink /><span className="hide-sm">Ver mi tienda</span></a>
       </div>
       {open && (
         <div className="cmd-scrim" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
