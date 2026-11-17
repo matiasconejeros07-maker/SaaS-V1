@@ -9,11 +9,11 @@ import type { Category, Product } from "@/lib/types";
 
 type Draft = {
   id?: string; name: string; description: string; price: string; unit: "unit" | "kg"; category_id: string;
-  newCategory: string; is_available: boolean; dine_in_only: boolean; track_stock: boolean; stock: string; image_url: string | null;
+  newCategory: string; is_available: boolean; dine_in_only: boolean; track_stock: boolean; stock: string; image_url: string | null; barcode: string;
 };
 const empty = (cat = ""): Draft => ({
   name: "", description: "", price: "", unit: "unit", category_id: cat, newCategory: "",
-  is_available: true, dine_in_only: false, track_stock: false, stock: "0", image_url: null,
+  is_available: true, dine_in_only: false, track_stock: false, stock: "0", image_url: null, barcode: "",
 });
 
 export function Catalog({ storeId, products: initialProducts, categories: initialCats }: { storeId: string; products: Product[]; categories: Category[] }) {
@@ -39,7 +39,7 @@ export function Catalog({ storeId, products: initialProducts, categories: initia
     setErrors({}); setConfirmDelete(false); setFile(null);
     setDraft(p ? {
       id: p.id, name: p.name, description: p.description ?? "", price: String(p.price), unit: p.unit, category_id: p.category_id ?? "",
-      newCategory: "", is_available: p.is_available, dine_in_only: p.dine_in_only, track_stock: p.track_stock, stock: String(p.stock), image_url: p.image_url,
+      newCategory: "", is_available: p.is_available, dine_in_only: p.dine_in_only, track_stock: p.track_stock, stock: String(p.stock), image_url: p.image_url, barcode: p.barcode ?? "",
     } : empty(cat !== "all" && cat !== "none" ? cat : cats[0]?.id ?? ""));
   }
 
@@ -84,12 +84,13 @@ export function Catalog({ storeId, products: initialProducts, categories: initia
       store_id: storeId, name: draft.name.trim(), description: draft.description.trim() || null, price, unit: draft.unit,
       category_id: categoryId, is_available: draft.is_available, dine_in_only: draft.dine_in_only,
       track_stock: draft.track_stock, stock: Number(draft.stock.replace(",", ".")) || 0, image_url: imageUrl,
+      barcode: draft.barcode.trim() || null,
     };
     const res = draft.id
       ? await supabase.from("products").update(row).eq("id", draft.id).select().single()
       : await supabase.from("products").insert({ ...row, position: products.length }).select().single();
     setBusy(false);
-    if (res.error) { toast("No se pudo guardar el producto."); return; }
+    if (res.error) { toast(/barcode/i.test(res.error.message) ? "Ese código de barras ya está en otro producto." : "No se pudo guardar el producto."); return; }
     const saved = res.data as Product;
     setProducts((l) => (draft.id ? l.map((x) => (x.id === saved.id ? saved : x)) : [...l, saved]));
     setDraft(null);
@@ -223,6 +224,9 @@ export function Catalog({ storeId, products: initialProducts, categories: initia
                 <input className="input" id="p-stock" inputMode="decimal" value={draft.stock} onChange={(e) => set({ stock: e.target.value.replace(/[^\d.,]/g, "") })} />
               </Field>
             )}
+            <Field label="Código de barras" htmlFor="p-barcode" hint="Opcional. Con el lector, haz clic aquí y escanea el producto.">
+              <input className="input" id="p-barcode" value={draft.barcode} onChange={(e) => set({ barcode: e.target.value.trim() })} />
+            </Field>
             <label className="toggle-row"><span><b>Solo para consumir en el local</b><small>Aparece en la carta de mesas, no en la tienda online</small></span>
               <span className="switch"><input type="checkbox" checked={draft.dine_in_only} onChange={(e) => set({ dine_in_only: e.target.checked })} /><span /></span></label>
           </>

@@ -19,7 +19,11 @@ Pensada para usarla en tu propio negocio y ofrecerla como servicio a otras tiend
 | Configuración: datos, logo, entrega, pagos, horario, módulos | ✅ |
 | Prueba gratis de 30 días por tienda | ✅ |
 | Cobro de suscripción y pagos con Mercado Pago | 🔜 Fase 2 |
-| Mesas QR, cocina, caja POS, inventario | 🔜 Fase 3 |
+| Mesas con QR imprimible, cobro de mesa | ✅ |
+| Pantalla de cocina en vivo con tiempos | ✅ |
+| Caja POS: código de barras, venta por kilo, vuelto, comandas | ✅ |
+| Apertura y cierre de caja con cuadratura | ✅ |
+| Inventario con movimientos, usuarios del equipo con PIN | 🔜 Fase 3 |
 
 Ver [docs/ROADMAP.md](docs/ROADMAP.md) para el plan completo y [docs/LETTERA-CORRECCIONES.md](docs/LETTERA-CORRECCIONES.md) para los problemas de Lettera que este proyecto resuelve.
 
@@ -65,7 +69,8 @@ bash supabase/tests/run.sh
 src/app/                 Rutas
   page.tsx               Landing
   ingresar, registro     Acceso y alta de tienda
-  panel/                 Panel de la tienda (inicio, pedidos, productos, configuración, plan)
+  panel/                 Panel de la tienda (inicio, pedidos, productos, caja, mesas, configuración, plan)
+  cocina/                Pantalla de cocina (pantalla completa)
   [slug]/                Tienda pública (catálogo, carrito, checkout)
   pedido/[token]/        Seguimiento del pedido
 src/lib/                 Supabase, tipos, formato chileno, horarios

@@ -179,7 +179,7 @@ export function Settings({ store, hours: initialHours }: { store: Store; hours: 
           <p className="muted" style={{ fontSize: 14 }}>Activa solo lo que usas. Los módulos inactivos no aparecen en tu tienda.</p>
           {([["tables", "Mesas con QR", "Carta digital por mesa"], ["kitchen", "Pantalla de cocina", "Comandas en vivo para la cocina"],
             ["pos", "Caja POS", "Ventas presenciales"], ["inventory", "Inventario", "Stock y alertas de reposición"]] as const).map(([k, t, d]) => (
-            <label className="toggle-row" key={k}><span><b>{t}</b><small>{d} · en desarrollo</small></span>
+            <label className="toggle-row" key={k}><span><b>{t}</b><small>{d}{k === "inventory" ? " · en desarrollo" : ""}</small></span>
               <span className="switch"><input type="checkbox" checked={!!s.modules?.[k]} onChange={(e) => set({ modules: { ...s.modules, [k]: e.target.checked } })} /><span /></span></label>
           ))}
         </section>

@@ -35,6 +35,17 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const data = await load(slug);
   if (!data) notFound();
   const state = openState(data.hours, data.store.timezone);
-  const products = data.products.filter((p) => (mesa ? true : !p.dine_in_only));
-  return <Shop store={data.store} categories={data.categories} products={products} hours={data.hours} open={state} tableToken={mesa ?? null} />;
+  // Pedido en mesa: el QR trae ?mesa=<token>. Se valida y se muestra el nombre de la mesa.
+  let table: { token: string; label: string } | null = null;
+  let tableError = false;
+  if (mesa) {
+    const supabase = await supabaseServer();
+    const { data: t } = await supabase.rpc("get_table_public", { p_token: mesa });
+    const row = Array.isArray(t) ? t[0] : t;
+    if (row && row.store_slug === data.store.slug) table = { token: mesa, label: row.label };
+    else tableError = true;
+  }
+  const products = data.products.filter((p) => (table ? true : !p.dine_in_only));
+  return <Shop store={data.store} categories={data.categories} products={products} hours={data.hours} open={state}
+    tableToken={table?.token ?? null} tableLabel={table?.label ?? null} tableError={tableError} />;
 }

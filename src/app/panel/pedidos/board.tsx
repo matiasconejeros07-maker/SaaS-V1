@@ -11,7 +11,7 @@ const COLS: { status: OrderStatus; title: string; color: string; action: string;
   { status: "preparing", title: "Preparando", color: "var(--warn)", action: "Marcar listo", next: "ready", lateAfter: 25 },
   { status: "ready", title: "Listos para entregar", color: "var(--ok)", action: "Entregado", next: "completed", lateAfter: 30 },
 ];
-const SELECT = "*, order_items(*)";
+const SELECT = "*, order_items(*), tables(label)";
 type Filter = "all" | "web" | "table" | "pos";
 
 export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Order[] }) {
@@ -125,10 +125,10 @@ export function OrdersBoard({ storeId, initial }: { storeId: string; initial: Or
                     onKeyDown={(e) => e.key === "Enter" && setOpenId(o.id)}>
                     <div className="ticket-top">
                       <b>#{o.number}</b>
-                      <span className="pill"><Icon />{FULFILLMENT_LABEL[o.fulfillment]}</span>
+                      <span className="pill"><Icon />{o.tables?.label ?? FULFILLMENT_LABEL[o.fulfillment]}</span>
                       <span className="age">{late ? "Atrasado · " : ""}{agoLabel(o.created_at, now)}</span>
                     </div>
-                    <div className="who">{o.customer_name}</div>
+                    <div className="who">{o.tables?.label && o.tables.label !== o.customer_name ? `${o.tables.label} · ` : ""}{o.customer_name}</div>
                     <ul>{o.order_items?.map((i) => <li key={i.id}>{qty(i.quantity, i.unit)} {i.name}</li>)}</ul>
                     {o.note && <p className="note">“{o.note}”</p>}
                     <div className="ticket-foot">

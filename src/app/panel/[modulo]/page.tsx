@@ -1,10 +1,7 @@
-import { BarChart3, Calculator, ChefHat, Layers, QrCode, Ticket, Trophy } from "lucide-react";
+import { BarChart3, Layers, Ticket, Trophy } from "lucide-react";
 import { notFound } from "next/navigation";
 
 const MODULES: Record<string, { title: string; text: string; icon: React.ComponentType<{ width?: number; height?: number }> }> = {
-  caja: { title: "Caja POS", text: "Cobra ventas presenciales con el mismo catálogo y stock de tu tienda online.", icon: Calculator },
-  cocina: { title: "Pantalla de cocina", text: "Comandas en vivo con temporizador y alerta cuando un pedido se atrasa.", icon: ChefHat },
-  mesas: { title: "Mesas y QR", text: "Un QR por mesa: los pedidos llegan a cocina con el número de mesa.", icon: QrCode },
   inventario: { title: "Inventario", text: "Stock por producto, alertas de reposición e historial de movimientos.", icon: Layers },
   fidelidad: { title: "Fidelidad", text: "Tarjeta de sellos digital para que tus clientes vuelvan.", icon: Trophy },
   cupones: { title: "Cupones", text: "Descuentos por código con límite de usos y fecha de término.", icon: Ticket },

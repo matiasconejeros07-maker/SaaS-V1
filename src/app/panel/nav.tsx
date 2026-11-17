@@ -11,9 +11,9 @@ const GROUPS: { title?: string; items: Item[] }[] = [
   { items: [{ href: "/panel", label: "Inicio", icon: Home }] },
   { title: "Ventas", items: [
     { href: "/panel/pedidos", label: "Pedidos", icon: Inbox },
-    { href: "/panel/caja", label: "Caja POS", icon: Calculator, module: "pos", soon: true },
-    { href: "/panel/cocina", label: "Cocina", icon: ChefHat, module: "kitchen", soon: true },
-    { href: "/panel/mesas", label: "Mesas y QR", icon: QrCode, module: "tables", soon: true },
+    { href: "/panel/caja", label: "Caja POS", icon: Calculator, module: "pos" },
+    { href: "/cocina", label: "Cocina", icon: ChefHat, module: "kitchen" },
+    { href: "/panel/mesas", label: "Mesas y QR", icon: QrCode, module: "tables" },
   ] },
   { title: "Catálogo", items: [
     { href: "/panel/productos", label: "Productos", icon: Package },
@@ -40,7 +40,8 @@ export function PanelNav({ store, activeOrders }: { store: Store; activeOrders: 
           {g.title && <span>{g.title}</span>}
           {g.items.map((it) => {
             const Icon = it.icon;
-            const off = it.module ? !store.modules?.[it.module] : false;
+            // La caja también se usa para comandas de mesa.
+            const off = it.module === "pos" ? !(store.modules?.pos || store.modules?.tables) : it.module ? !store.modules?.[it.module] : false;
             return (
               <Link key={it.href} href={it.href} className="nav-item" aria-current={isActive(it.href) ? "page" : undefined}>
                 <Icon />

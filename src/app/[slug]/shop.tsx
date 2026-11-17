@@ -11,9 +11,9 @@ import { PAYMENT_LABEL, type Category, type Fulfillment, type OpeningHour, type 
 type Cart = Record<string, number>;
 type Placed = { number: number; total: number; token: string; message: string; payment: PaymentMethod };
 
-export function Shop({ store, categories, products, hours, open, tableToken }: {
+export function Shop({ store, categories, products, hours, open, tableToken, tableLabel, tableError }: {
   store: Store; categories: Category[]; products: Product[]; hours: OpeningHour[];
-  open: { open: boolean; label: string }; tableToken: string | null;
+  open: { open: boolean; label: string }; tableToken: string | null; tableLabel: string | null; tableError: boolean;
 }) {
   const key = `cart:${store.slug}`;
   const [cart, setCart] = useState<Cart>({});
@@ -59,7 +59,7 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
     e.preventDefault();
     const er: Record<string, string> = {};
     const phone = normalizeCLPhone(form.phone);
-    if (!form.name.trim()) er.name = "Escribe tu nombre para que el local sepa de quién es el pedido.";
+    if (!tableToken && !form.name.trim()) er.name = "Escribe tu nombre para que el local sepa de quién es el pedido.";
     if (fulfillment !== "dine_in" && !phone) er.phone = "Ingresa un celular de 9 dígitos que empiece con 9.";
     if (fulfillment === "delivery" && !form.address.trim()) er.address = "Escribe la dirección de entrega.";
     if (subtotal < store.min_order) er.min = `El pedido mínimo es de ${clp(store.min_order)}.`;
@@ -72,7 +72,7 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
       p_customer_name: form.name.trim(),
       p_customer_phone: phone,
       p_fulfillment: fulfillment,
-      p_payment_method: payment,
+      p_payment_method: tableToken ? (store.accepts_cash ? "cash" : "transfer") : payment,
       p_address: fulfillment === "delivery" ? form.address.trim() : null,
       p_note: form.note.trim() || null,
       p_table_token: tableToken,
@@ -89,11 +89,12 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
       ...lines.map((l) => `${qty(l.q, l.p.unit)} ${l.p.name}  ${clp(Math.round(l.p.price * l.q))}`),
       ...(fee ? [`Delivery  ${clp(fee)}`] : []),
       `*Total ${clp(row.total)}*`, "",
-      `Cliente: ${form.name.trim()}`,
+      ...(tableLabel ? [`Mesa: ${tableLabel}`] : []),
+      ...(form.name.trim() ? [`Cliente: ${form.name.trim()}`] : []),
       ...(phone ? [`Teléfono: ${formatCLPhone(phone)}`] : []),
       `Entrega: ${fulfillment === "delivery" ? "Delivery" : fulfillment === "dine_in" ? "Mesa" : "Retiro"}`,
       ...(fulfillment === "delivery" ? [`Dirección: ${form.address.trim()}`] : []),
-      `Pago: ${PAYMENT_LABEL[payment]}`,
+      ...(tableToken ? ["Pago: en el local"] : [`Pago: ${PAYMENT_LABEL[payment]}`]),
       ...(form.note.trim() ? [`Nota: ${form.note.trim()}`] : []),
     ].join("\n");
     setPlaced({ number: row.order_number, total: row.total, token: row.public_token, message: msg, payment });
@@ -137,7 +138,7 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
           <h1>{store.name}</h1>
           <div className="shop-meta">
             <span className={`pill ${open.open ? "ok" : "warn"}`}><span className="dot" />{open.label}</span>
-            {tableToken && <span className="pill accent">Pedido en mesa</span>}
+            {tableLabel && <span className="pill accent">Pedido en {tableLabel}</span>}
             {!tableToken && store.delivery_enabled && <span className="pill"><Bike />Delivery {store.delivery_fee ? clp(store.delivery_fee) : "gratis"}</span>}
             {!tableToken && store.pickup_enabled && <span className="pill"><ShoppingBag />Retiro</span>}
             {store.commune && <span className="pill"><MapPin />{store.commune}</span>}
@@ -151,6 +152,7 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
           {store.address && <a className="muted" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.address}, ${store.commune ?? ""}`)}`} target="_blank" rel="noopener"><MapPin width={14} height={14} /> {store.address}{store.commune ? `, ${store.commune}` : ""}</a>}
         </div>
       )}
+      {tableError && <div className="shop-closed"><Clock /><div><b>Este QR de mesa ya no es válido</b><span>Pide ayuda al personal. Igual puedes revisar la carta o pedir para retiro.</span></div></div>}
       {!open.open && (
         <div className="shop-closed"><Clock />
           <div><b>{open.label}</b><span>Puedes revisar el catálogo. Los pedidos se reciben dentro del horario: {hours.length ? [...hours].sort((a, b) => ((a.weekday + 6) % 7) - ((b.weekday + 6) % 7)).map((h) => `${DAYS[h.weekday].slice(0, 3)} ${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`).join(" · ") : "sin horario publicado"}.</span></div>
@@ -212,7 +214,7 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
             </div>
           )}
           <div className="form-grid">
-            <Field label={tableToken ? "Tu nombre o número de mesa" : "Tu nombre"} htmlFor="c-name" error={errors.name}>
+            <Field label={tableToken ? "Tu nombre (opcional)" : "Tu nombre"} htmlFor="c-name" error={errors.name}>
               <input className="input" id="c-name" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
             {fulfillment !== "dine_in" && (
@@ -225,12 +227,12 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
                 <input className="input" id="c-addr" autoComplete="street-address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </Field>
             )}
-            <Field className="full" label="Pago" htmlFor="c-pay">
+            {!tableToken && <Field className="full" label="Pago" htmlFor="c-pay">
               <select className="select" id="c-pay" value={payment} onChange={(e) => setPayment(e.target.value as PaymentMethod)}>
                 {store.accepts_transfer && <option value="transfer">Transferencia</option>}
                 {store.accepts_cash && <option value="cash">Efectivo</option>}
               </select>
-            </Field>
+            </Field>}
             <Field className="full" label="Nota para el local" htmlFor="c-note" hint="Opcional. Ej: sin cebolla.">
               <input className="input" id="c-note" maxLength={300} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
             </Field>
@@ -245,21 +247,21 @@ export function Shop({ store, categories, products, hours, open, tableToken }: {
       </Drawer>
 
       <Drawer open={sheet === "done" && !!placed} title="¡Pedido recibido!" onClose={() => setSheet(null)}
-        footer={placed && (
+        footer={placed && !tableToken && (
           <a className="btn btn-primary btn-lg btn-block" target="_blank" rel="noopener"
             href={`https://wa.me/${store.whatsapp}?text=${encodeURIComponent(placed.message)}`}><MessageCircle />Enviar resumen por WhatsApp</a>
         )}>
         {placed && (
           <>
             <div className="done-head"><span className="done-ic"><Check /></span>
-              <div><b>Pedido #{placed.number} · {clp(placed.total)}</b><p className="muted">{store.name} ya lo ve en su pantalla.</p></div>
+              <div><b>Pedido #{placed.number} · {clp(placed.total)}</b><p className="muted">{tableLabel ? `Llegó a cocina para ${tableLabel}. Pagas en el local al terminar.` : `${store.name} ya lo ve en su pantalla.`}</p></div>
             </div>
-            {placed.payment === "transfer" && store.transfer_details && (
+            {!tableToken && placed.payment === "transfer" && store.transfer_details && (
               <div className="card" style={{ padding: 16 }}><span className="eyebrow">Datos para transferir</span>
                 <p style={{ whiteSpace: "pre-wrap", marginTop: 8 }}>{store.transfer_details}</p></div>
             )}
             <Link className="btn btn-ghost" href={`/pedido/${placed.token}`}>Seguir el estado de mi pedido</Link>
-            <p className="muted" style={{ fontSize: 13 }}>Enviar el resumen por WhatsApp es opcional; sirve para conversar directo con el local.</p>
+            {!tableToken && <p className="muted" style={{ fontSize: 13 }}>Enviar el resumen por WhatsApp es opcional; sirve para conversar directo con el local.</p>}
           </>
         )}
       </Drawer>

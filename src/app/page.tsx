@@ -11,7 +11,7 @@ const PILLARS = [
   { icon: Store, title: "Vende", text: "Tu catálogo online y tu carta QR, listos para compartir en Instagram, WhatsApp o la mesa.",
     items: ["Catálogo ilimitado con fotos", "Venta por unidad o por kilo", "Delivery y retiro con costo configurable", "Pedido mínimo y horarios automáticos"] },
   { icon: Inbox, title: "Opera", text: "Un tablero en vivo para pedidos. Nada se pierde entre chats.",
-    items: ["Pedidos en tiempo real con aviso sonoro", "Alerta de pedidos atrasados", "Control de stock por producto", "Mesas, cocina y caja (próximamente)"] },
+    items: ["Pedidos en tiempo real con aviso sonoro", "Alerta de pedidos atrasados", "Mesas con QR, pantalla de cocina y caja", "Apertura y cierre de caja con cuadratura"] },
   { icon: Trophy, title: "Crece", text: "Datos claros para decidir y herramientas para que tus clientes vuelvan.",
     items: ["Ventas del día y ticket promedio", "Seguimiento del pedido para tu cliente", "Fidelidad y cupones (próximamente)", "Reportes con alertas (próximamente)"] },
 ];
@@ -29,7 +29,7 @@ const FAQ = [
   ["¿Cobran un porcentaje de mis ventas?", `No. Pagas solo ${clp(PLAN.priceClp)} al mes. Lo que vendes es 100% tuyo.`],
   ["¿Qué pasa cuando termina la prueba?", `Tienes ${PLAN.trialDays} días gratis sin ingresar tarjeta. Si no activas tu plan, la tienda deja de recibir pedidos, pero no se borra nada.`],
   ["¿Puedo vender por kilo?", "Sí. Cada producto puede venderse por unidad o por kilo, con control de stock opcional."],
-  ["¿Sirve para restaurantes con mesas?", "La carta QR por mesa ya está en la base del sistema; la pantalla de cocina y la caja llegan en las próximas versiones."],
+  ["¿Sirve para restaurantes con mesas?", "Sí. Imprimes un QR por mesa, tus clientes piden desde el celular y la comanda llega a la pantalla de cocina. Cobras la mesa desde la caja, con efectivo, tarjeta o transferencia."],
 ];
 
 export default function Landing() {

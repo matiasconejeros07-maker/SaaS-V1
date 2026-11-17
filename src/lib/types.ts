@@ -67,6 +67,8 @@ export interface Product {
   dine_in_only: boolean;
   track_stock: boolean;
   stock: number;
+  sku: string | null;
+  barcode: string | null;
   position: number;
 }
 
@@ -99,7 +101,30 @@ export interface Order {
   delivery_fee: number;
   total: number;
   created_at: string;
+  paid_at?: string | null;
+  cash_session_id?: string | null;
+  cash_received?: number | null;
   order_items?: OrderItem[];
+  tables?: { label: string } | null;
+}
+
+export interface DiningTable {
+  id: string;
+  store_id: string;
+  label: string;
+  token: string;
+  created_at: string;
+}
+
+export interface CashSession {
+  id: string;
+  store_id: string;
+  opened_at: string;
+  opening_amount: number;
+  closed_at: string | null;
+  expected_cash: number | null;
+  counted_amount: number | null;
+  notes: string | null;
 }
 
 export interface Subscription {
@@ -148,3 +173,6 @@ export const BUSINESS_TYPES: { id: string; label: string; group: string }[] = [
   { id: "taller", label: "Taller o reparaciones", group: "Servicios" },
   { id: "otro", label: "Otro", group: "Otros" },
 ];
+
+/** Columnas de un pedido con sus ítems y su mesa. */
+export const ORDER_SELECT = "*, order_items(*), tables(label)";

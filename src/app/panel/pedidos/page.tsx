@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Pedidos" };
 export default async function Page() {
   const { store } = await getStoreContext();
   const supabase = await supabaseServer();
-  const { data } = await supabase.from("orders").select("*, order_items(*)")
+  const { data } = await supabase.from("orders").select("*, order_items(*), tables(label)")
     .eq("store_id", store.id).in("status", ["new", "preparing", "ready"])
     .order("created_at", { ascending: true }).limit(200);
   return (

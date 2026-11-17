@@ -7,7 +7,7 @@ DB=${TEST_DB:-saas_test}
 PSQL=${PSQL:-psql}
 dropdb --if-exists "$DB" >/dev/null 2>&1 || true
 createdb "$DB"
-out=$($PSQL -q -v ON_ERROR_STOP=1 -d "$DB" -f tests/00_stub_supabase.sql $(ls migrations/*.sql | sort | sed 's/^/-f /') -f tests/10_core_test.sql 2>&1)
-echo "$out" | grep -E 'NOTICE|^ T|FALLA|ERROR' || true
+out=$($PSQL -q -v ON_ERROR_STOP=1 -d "$DB" -f tests/00_stub_supabase.sql $(ls migrations/*.sql | sort | sed 's/^/-f /') $(ls tests/[1-9]*_test.sql | sort | sed 's/^/-f /') 2>&1)
+echo "$out" | grep -E 'NOTICE|^ [A-Z][0-9]|FALLA|ERROR' || true
 if echo "$out" | grep -qE 'FALLA|ERROR'; then echo "❌ Pruebas fallidas"; exit 1; fi
 echo "✅ Pruebas de base de datos OK"

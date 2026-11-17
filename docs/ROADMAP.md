@@ -17,11 +17,18 @@ Registro, alta de tienda, catálogo, tienda pública, pedidos en tiempo real, se
 Necesario para empezar: cuenta de Mercado Pago de la empresa con RUT, credenciales de producción y una aplicación en developers.mercadopago.cl.
 
 ## Fase 3 — Restaurante y caja
-- **Mesas y QR**: CRUD de mesas, impresión de QR por mesa (la tabla `tables` y el pedido en mesa ya existen en la base).
-- **Pantalla de cocina**: vista a pantalla completa con temporizadores por comanda.
-- **Caja POS**: venta presencial con búsqueda y lector de código de barras; cierre de caja.
-- **Inventario**: movimientos de stock, alertas de reposición.
-- Usuarios del equipo (mesero, cajero) con roles y PIN.
+✅ Hecho:
+- **Mesas y QR**: crear, renombrar y eliminar mesas; hoja imprimible de QR; estado libre/ocupada con total por cobrar.
+- **Pedido en mesa**: el cliente escanea, pide sin datos personales y paga en el local.
+- **Pantalla de cocina**: pantalla completa, en vivo, tiempos con colores, aviso sonoro, filtros por tipo.
+- **Caja POS**: búsqueda y lector de código de barras, venta por kilo, vuelto con billetes rápidos, comandas a cocina.
+- **Caja**: apertura con sencillo, resumen por medio de pago, cierre con cuadratura (sobra/falta).
+
+Pendiente:
+- **Inventario**: historial de movimientos, ingreso de mercadería, alertas de reposición.
+- **Equipo**: invitar meseros y cajeros con su propio acceso (rol `staff`, ya soportado en la base) y PIN rápido.
+- Impresión de comandas en impresora térmica.
+- Historial de cajas cerradas.
 
 ## Fase 4 — Crecimiento
 - Fidelidad (tarjeta de sellos), cupones, reportes con alertas.
