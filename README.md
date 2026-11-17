@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mostrador (nombre provisional)
 
-## Getting Started
+Plataforma SaaS para que pymes chilenas tengan **tienda online, carta QR y gestión de pedidos** sin comisión por venta.
+Pensada para usarla en tu propio negocio y ofrecerla como servicio a otras tiendas (multi-tienda desde el día uno).
 
-First, run the development server:
+> El nombre se cambia en un solo lugar: `src/config/brand.ts` o la variable `NEXT_PUBLIC_BRAND_NAME`.
+
+## Qué incluye esta versión
+
+| Área | Estado |
+|---|---|
+| Registro e ingreso (correo y contraseña) | ✅ |
+| Alta de tienda en 4 pasos con vista previa en vivo | ✅ |
+| Panel: inicio con ventas del día, pasos pendientes y enlace para compartir | ✅ |
+| Productos: fotos, categorías, venta por unidad o kilo, stock, agotado | ✅ |
+| Pedidos en tiempo real (sin recargar), aviso sonoro, alerta de atraso | ✅ |
+| Tienda pública con carrito, delivery/retiro, pedido mínimo, horario | ✅ |
+| Seguimiento del pedido para el cliente | ✅ |
+| Configuración: datos, logo, entrega, pagos, horario, módulos | ✅ |
+| Prueba gratis de 30 días por tienda | ✅ |
+| Cobro de suscripción y pagos con Mercado Pago | 🔜 Fase 2 |
+| Mesas QR, cocina, caja POS, inventario | 🔜 Fase 3 |
+
+Ver [docs/ROADMAP.md](docs/ROADMAP.md) para el plan completo y [docs/LETTERA-CORRECCIONES.md](docs/LETTERA-CORRECCIONES.md) para los problemas de Lettera que este proyecto resuelve.
+
+## Tecnología
+
+- **Next.js 15** (App Router, TypeScript) — interfaz y servidor.
+- **Supabase** — Postgres, autenticación, almacenamiento de imágenes y tiempo real.
+- **Despliegue sugerido:** Vercel (app) + Supabase Cloud (datos).
+
+Seguridad principal (en `supabase/migrations`):
+- Cada tabla tiene **Row Level Security**: una tienda nunca ve datos de otra.
+- Los pedidos solo se crean con la función `place_order`, que **recalcula precios, despacho y stock en el servidor**. El navegador no puede fijar precios.
+- Montos y datos del cliente de un pedido no se pueden editar; los estados solo avanzan en orden.
+
+## Cómo correrlo en tu computador
+
+Requisitos: Node 22+, Docker Desktop.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx supabase start          # levanta Postgres, Auth, Storage y Realtime en Docker
+cp .env.example .env.local  # y pega la URL y ANON_KEY que imprime el comando anterior
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pruebas de la base de datos (Postgres local, sin Docker):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bash supabase/tests/run.sh
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Cómo publicarlo
 
-## Learn More
+1. Crea un proyecto en [supabase.com](https://supabase.com) (región São Paulo, la más cercana a Chile).
+2. Aplica las migraciones: `npx supabase link --project-ref <id>` y luego `npx supabase db push`.
+3. En Supabase → Authentication → URL Configuration, pon la URL de tu sitio.
+4. Importa el repo en [vercel.com](https://vercel.com) y agrega las variables de `.env.example`.
+5. Conecta tu dominio.
 
-To learn more about Next.js, take a look at the following resources:
+## Estructura
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/app/                 Rutas
+  page.tsx               Landing
+  ingresar, registro     Acceso y alta de tienda
+  panel/                 Panel de la tienda (inicio, pedidos, productos, configuración, plan)
+  [slug]/                Tienda pública (catálogo, carrito, checkout)
+  pedido/[token]/        Seguimiento del pedido
+src/lib/                 Supabase, tipos, formato chileno, horarios
+supabase/migrations/     Esquema, permisos y funciones
+supabase/tests/          Pruebas de la base de datos
+```

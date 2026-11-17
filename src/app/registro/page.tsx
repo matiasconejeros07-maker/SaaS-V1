@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Crear tienda" };
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   if (isSupabaseConfigured) {

@@ -1,12 +1,14 @@
 {
-  "name": "saas",
+  "name": "mostrador",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:test": "bash supabase/tests/run.sh",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
