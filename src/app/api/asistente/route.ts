@@ -7,7 +7,7 @@ import type { Store, Subscription } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODEL = process.env.ASSISTANT_MODEL ?? "claude-opus-5-5";
+const MODEL = process.env.ASSISTANT_MODEL ?? "claude-haiku-5-5";
 const DAILY_LIMIT = Number(process.env.ASSISTANT_DAILY_LIMIT ?? 60);
 
 const Body = z.object({
@@ -73,14 +73,11 @@ export async function POST(req: Request) {
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        const stream = client!.beta.messages.stream({
+        const stream = client!.messages.stream({
           model: MODEL,
           max_tokens: 16000,
           // Conversación de ayuda: esfuerzo bajo basta y responde más rápido.
           output_config: { effort: "low" },
-          // Si un filtro de seguridad rechaza la pregunta, la API la reintenta con otro modelo.
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
           system: [
             { type: "text", text: `${INSTRUCTIONS}\n\n${KNOWLEDGE}`, cache_control: { type: "ephemeral" } },
             { type: "text", text: `<contexto_tienda>\n${context}\n</contexto_tienda>` },

@@ -45,8 +45,8 @@ Botón **Ayuda** en la barra superior del panel (o "Preguntar al asistente" en �
 - la guía del producto en `src/lib/assistant/knowledge.ts` (**actualízala cuando cambie una pantalla**), y
 - el contexto de la tienda: módulos activos, página actual, caja abierta, plan. No envía datos de clientes ni pedidos.
 
-Configuración: `ANTHROPIC_API_KEY` en el servidor (nunca en variables `NEXT_PUBLIC_`). Usa Claude Opus 5.5 con esfuerzo bajo, respuestas en streaming,
-caché de la guía y reintento automático con otro modelo si un filtro de seguridad rechaza la pregunta. Límite de 60 preguntas por usuario al día (`ASSISTANT_DAILY_LIMIT`).
+Configuración: `ANTHROPIC_API_KEY` en el servidor (nunca en variables `NEXT_PUBLIC_`). Usa Claude Haiku 5.5 (el modelo más económico) con esfuerzo bajo, respuestas en streaming y caché de la guía.
+Si un filtro de seguridad rechaza una pregunta, responde que no puede ayudar con ella. Costo estimado: ~US$0,001 por pregunta. Límite de 60 preguntas por usuario al día (`ASSISTANT_DAILY_LIMIT`).
 Sin clave, el botón funciona pero responde que el asistente no está configurado.
 
 ## Cómo correrlo en tu computador
